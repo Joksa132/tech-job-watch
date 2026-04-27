@@ -1,5 +1,7 @@
 import { pgTable, text, integer, timestamp, boolean, jsonb, index } from 'drizzle-orm/pg-core';
 
+export * from './auth-schema';
+
 export const jobs = pgTable('jobs', {
   id: text('id').primaryKey(),
   source: text('source').notNull(),
@@ -23,9 +25,9 @@ export const jobs = pgTable('jobs', {
   firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull(),
   lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull(),
   scrapedAt: timestamp('scraped_at', { withTimezone: true }).notNull(),
-}, (t) => ({
-  sourceIdx: index('source_idx').on(t.source),
-  postedAtIdx: index('posted_at_idx').on(t.postedAt),
-  companySlugIdx: index('company_slug_idx').on(t.companySlug),
-  expiredAtIdx: index('expired_at_idx').on(t.expiredAt),
-}));
+}, (t) => [
+  index('source_idx').on(t.source),
+  index('posted_at_idx').on(t.postedAt),
+  index('company_slug_idx').on(t.companySlug),
+  index('expired_at_idx').on(t.expiredAt),
+]);
