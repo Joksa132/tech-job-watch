@@ -47,6 +47,7 @@ async function main() {
           salaryMin: r.salaryMin,
           salaryMax: r.salaryMax,
           salaryCurrency: r.salaryCurrency,
+          listRank: r.listRank,
           postedAt: r.postedAt,
           expiresAt: r.expiresAt,
           lastSeenAt: now,

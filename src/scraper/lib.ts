@@ -14,6 +14,7 @@ export type RawJob = {
   salaryMin: number | null;
   salaryMax: number | null;
   salaryCurrency: string | null;
+  listRank: number;
   postedAt: Date;
   expiresAt: Date | null;
 };

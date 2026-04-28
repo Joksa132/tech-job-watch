@@ -25,6 +25,7 @@ export async function scrape(): Promise<RawJob[]> {
 
     for (const el of cards.toArray()) {
       if (out.length >= SCRAPE_LIMIT) break;
+      const listRank = out.length;
       const $c = $(el);
 
       const titleLink = $c.find("a.__ga4_job_title").first();
@@ -36,8 +37,12 @@ export async function scrape(): Promise<RawJob[]> {
       const detailUrl = href.startsWith("http")
         ? href.split("?")[0]
         : `${BASE}${href.split("?")[0]}`;
-      const company =
-        $c.find("a.__ga4_job_company").first().text().trim() || "Unknown";
+      const companyFromText = $c
+        .find("a.__ga4_job_company")
+        .first()
+        .text()
+        .trim();
+      const company = companyFromText || companyFromHref(href) || "Unknown";
 
       const locationText = $c
         .find(".la-map-marker")
@@ -48,6 +53,11 @@ export async function scrape(): Promise<RawJob[]> {
         .trim();
       const [locationName, mode] = locationText.split("|").map((s) => s.trim());
       const remote = /remote|home/i.test(`${mode ?? ""} ${locationText}`);
+      const isModeOnly =
+        /^(remote|hibrid|hybrid|onsite|on-site|home|work from home)$/i.test(
+          locationName ?? "",
+        );
+      const location = !locationName || isModeOnly ? null : locationName;
 
       const dateText = $c
         .find(".la-clock")
@@ -106,7 +116,7 @@ export async function scrape(): Promise<RawJob[]> {
         title,
         company,
         companySlug: slugify(company),
-        location: locationName || null,
+        location,
         remote,
         seniority,
         tags,
@@ -115,6 +125,7 @@ export async function scrape(): Promise<RawJob[]> {
         salaryMin: salary?.min ?? null,
         salaryMax: salary?.max ?? null,
         salaryCurrency: salary?.currency ?? null,
+        listRank,
         postedAt,
         expiresAt: null,
       });
@@ -122,4 +133,12 @@ export async function scrape(): Promise<RawJob[]> {
     offset += PAGE_SIZE;
   }
   return out;
+}
+
+function companyFromHref(href: string): string | null {
+  const segs = href.split("?")[0].split("/").filter(Boolean);
+  if (segs[0] === "posao" && segs.length >= 3) {
+    return segs[2].replace(/-/g, " ");
+  }
+  return null;
 }

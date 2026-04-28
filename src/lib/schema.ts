@@ -19,6 +19,7 @@ export const jobs = pgTable('jobs', {
   salaryMin: integer('salary_min'),
   salaryMax: integer('salary_max'),
   salaryCurrency: text('salary_currency'),
+  listRank: integer('list_rank'),
   postedAt: timestamp('posted_at', { withTimezone: true }).notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }),
   expiredAt: timestamp('expired_at', { withTimezone: true }),
