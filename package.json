@@ -9,7 +9,7 @@
     "lint": "eslint",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "scrape": "tsx src/scraper/run-all.ts"
+    "scrape": "tsx --env-file-if-exists=.env.local src/scraper/run-all.ts"
   },
   "dependencies": {
     "@next/env": "^16.2.4",
@@ -17,7 +17,6 @@
     "cheerio": "^1.2.0",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.4",
-    "p-limit": "^7.3.0",
     "postgres": "^3.4.9",
     "react": "19.2.4",
     "react-dom": "19.2.4",
