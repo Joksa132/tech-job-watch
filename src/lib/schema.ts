@@ -1,4 +1,14 @@
-import { pgTable, text, integer, timestamp, boolean, jsonb, index } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  integer,
+  timestamp,
+  boolean,
+  jsonb,
+  index,
+  primaryKey,
+} from 'drizzle-orm/pg-core';
+import { user } from './auth-schema';
 
 export * from './auth-schema';
 
@@ -30,3 +40,21 @@ export const jobs = pgTable('jobs', {
   index('company_slug_idx').on(t.companySlug),
   index('expired_at_idx').on(t.expiredAt),
 ]);
+
+export const savedJobs = pgTable(
+  'saved_jobs',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    jobId: text('job_id')
+      .notNull()
+      .references(() => jobs.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('saved'), // 'saved' | 'applied'
+    notes: text('notes'),
+    appliedAt: timestamp('applied_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.jobId] })],
+);

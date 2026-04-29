@@ -1,9 +1,18 @@
 import { jobs } from "@/lib/schema";
 import { fmtDate, fmtSalary } from "@/lib/format";
+import { SaveButton } from "./save-button";
 
 type Job = typeof jobs.$inferSelect;
 
-export function JobCard({ job }: { job: Job }) {
+export function JobCard({
+  job,
+  signedIn,
+  isSaved,
+}: {
+  job: Job;
+  signedIn: boolean;
+  isSaved: boolean;
+}) {
   return (
     <li className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-16 gap-y-3 py-7 border-b border-rule">
       <div className="min-w-0">
@@ -58,14 +67,17 @@ export function JobCard({ job }: { job: Job }) {
             {fmtSalary(job.salaryMin, job.salaryMax, job.salaryCurrency)}
           </p>
         )}
-        <a
-          href={job.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block mt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-accent hover:underline underline-offset-4"
-        >
-          Read →
-        </a>
+        <div className="mt-2 flex md:justify-end items-center gap-4">
+          {signedIn && <SaveButton jobId={job.id} isSaved={isSaved} />}
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent hover:underline underline-offset-4"
+          >
+            Read →
+          </a>
+        </div>
       </div>
     </li>
   );

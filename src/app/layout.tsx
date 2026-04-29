@@ -60,6 +60,12 @@ export default async function RootLayout({
               <div className="font-mono text-[11px] uppercase tracking-[0.15em] flex items-center gap-3">
                 {session ? (
                   <>
+                    <Link
+                      href="/saved"
+                      className="hover:text-accent transition-colors duration-150 cursor-pointer"
+                    >
+                      Saved
+                    </Link>
                     <span className="text-muted normal-case tracking-normal">
                       {session.user.name}
                     </span>

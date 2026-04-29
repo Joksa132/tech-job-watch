@@ -1,15 +1,30 @@
 import { db } from "@/lib/db";
-import { jobs } from "@/lib/schema";
-import { isNull, asc, sql } from "drizzle-orm";
+import { jobs, savedJobs } from "@/lib/schema";
+import { isNull, asc, eq, sql } from "drizzle-orm";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { JobCard } from "@/components/job-card";
 
 export default async function Home() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
   const rows = await db
     .select()
     .from(jobs)
     .where(isNull(jobs.expiredAt))
     .orderBy(sql`${jobs.listRank} asc nulls last`, asc(jobs.id))
     .limit(200);
+
+  const savedIds = session
+    ? new Set(
+        (
+          await db
+            .select({ jobId: savedJobs.jobId })
+            .from(savedJobs)
+            .where(eq(savedJobs.userId, session.user.id))
+        ).map((r) => r.jobId),
+      )
+    : new Set<string>();
 
   return (
     <section className="mx-auto max-w-5xl px-6 pt-12">
@@ -28,7 +43,12 @@ export default async function Home() {
       ) : (
         <ol>
           {rows.map((j) => (
-            <JobCard key={j.id} job={j} />
+            <JobCard
+              key={j.id}
+              job={j}
+              signedIn={!!session}
+              isSaved={savedIds.has(j.id)}
+            />
           ))}
         </ol>
       )}
