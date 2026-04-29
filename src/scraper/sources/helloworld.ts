@@ -98,17 +98,6 @@ export async function scrape(): Promise<RawJob[]> {
         ? { min: toNum(sm[1]), max: toNum(sm[2]), currency: sm[3] }
         : null;
 
-      let description: string | null = null;
-      let rawHtml: string | null = null;
-      try {
-        const $d = load(await fetchHtml(detailUrl));
-        const node = $d(".__job-content").first();
-        description = node.text().trim().replace(/\s+/g, " ") || null;
-        rawHtml = node.html() || null;
-      } catch (err) {
-        console.log(`[helloworld] detail failed for ${detailUrl}:`, err);
-      }
-
       out.push({
         source: "helloworld",
         sourceId,
@@ -120,8 +109,6 @@ export async function scrape(): Promise<RawJob[]> {
         remote,
         seniority,
         tags,
-        description,
-        rawHtml,
         salaryMin: salary?.min ?? null,
         salaryMax: salary?.max ?? null,
         salaryCurrency: salary?.currency ?? null,

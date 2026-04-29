@@ -42,8 +42,6 @@ async function main() {
           remote: r.remote,
           seniority: r.seniority,
           tags: r.tags,
-          description: r.description,
-          rawHtml: r.rawHtml,
           salaryMin: r.salaryMin,
           salaryMax: r.salaryMax,
           salaryCurrency: r.salaryCurrency,

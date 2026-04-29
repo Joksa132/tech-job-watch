@@ -9,8 +9,6 @@ export type RawJob = {
   remote: boolean;
   seniority: string;
   tags: string[];
-  description: string | null;
-  rawHtml: string | null;
   salaryMin: number | null;
   salaryMax: number | null;
   salaryCurrency: string | null;

@@ -14,8 +14,6 @@ export const jobs = pgTable('jobs', {
   remote: boolean('remote').default(false),
   seniority: text('seniority'),
   tags: jsonb('tags').$type<string[]>().notNull().default([]),
-  description: text('description'),
-  rawHtml: text('raw_html'),
   salaryMin: integer('salary_min'),
   salaryMax: integer('salary_max'),
   salaryCurrency: text('salary_currency'),
