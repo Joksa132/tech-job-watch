@@ -7,9 +7,9 @@ export function SignInButton() {
     <button
       type="button"
       onClick={() => authClient.signIn.social({ provider: "github" })}
-      className="rounded-md border border-foreground/20 px-3 py-1.5 text-sm hover:bg-foreground/5"
+      className="hover:text-accent transition-colors duration-150"
     >
-      Sign in with GitHub
+      Sign in
     </button>
   );
 }
@@ -19,7 +19,7 @@ export function SignOutButton() {
     <button
       type="button"
       onClick={() => authClient.signOut()}
-      className="rounded-md border border-foreground/20 px-3 py-1.5 text-sm hover:bg-foreground/5"
+      className="hover:text-accent transition-colors duration-150"
     >
       Sign out
     </button>
