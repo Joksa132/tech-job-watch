@@ -4,13 +4,16 @@ import { jobs } from "../lib/schema";
 import { slugify, type RawJob } from "./lib";
 import * as helloworld from "./sources/helloworld";
 import * as infostud from "./sources/infostud";
+import * as joberty from "./sources/joberty";
 
 const sources: Array<{
   name: RawJob["source"];
   scrape: () => Promise<RawJob[]>;
+  dedupAcrossSources: boolean;
 }> = [
-  { name: "helloworld", scrape: helloworld.scrape },
-  { name: "infostud", scrape: infostud.scrape },
+  { name: "helloworld", scrape: helloworld.scrape, dedupAcrossSources: true },
+  { name: "infostud", scrape: infostud.scrape, dedupAcrossSources: true },
+  { name: "joberty", scrape: joberty.scrape, dedupAcrossSources: false },
 ];
 
 const required = (j: RawJob) =>
@@ -46,7 +49,9 @@ async function main() {
         continue;
       }
 
-      const existing = await loadExistingJobs(source.name);
+      const existing = source.dedupAcrossSources
+        ? await loadExistingJobs(source.name)
+        : new Set<string>();
       let upserted = 0;
       let skipped = 0;
       for (const r of rows) {
