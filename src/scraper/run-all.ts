@@ -1,15 +1,31 @@
+import { ne } from "drizzle-orm";
 import { db } from "../lib/db";
 import { jobs } from "../lib/schema";
-import type { RawJob } from "./lib";
+import { slugify, type RawJob } from "./lib";
 import * as helloworld from "./sources/helloworld";
+import * as infostud from "./sources/infostud";
 
 const sources: Array<{
   name: RawJob["source"];
   scrape: () => Promise<RawJob[]>;
-}> = [{ name: "helloworld", scrape: helloworld.scrape }];
+}> = [
+  { name: "helloworld", scrape: helloworld.scrape },
+  { name: "infostud", scrape: infostud.scrape },
+];
 
 const required = (j: RawJob) =>
   !!j.title && !!j.company && !!j.url && !!j.postedAt && !!j.sourceId;
+
+const jobKey = (title: string, companySlug: string) =>
+  `${slugify(title)}|||${companySlug}`;
+
+async function loadExistingJobs(currentSource: string): Promise<Set<string>> {
+  const rows = await db
+    .select({ title: jobs.title, companySlug: jobs.companySlug })
+    .from(jobs)
+    .where(ne(jobs.source, currentSource));
+  return new Set(rows.map((r) => jobKey(r.title, r.companySlug)));
+}
 
 async function main() {
   let exitCode = 0;
@@ -30,8 +46,15 @@ async function main() {
         continue;
       }
 
+      const existing = await loadExistingJobs(source.name);
+      let upserted = 0;
+      let skipped = 0;
       for (const r of rows) {
         if (!required(r)) continue;
+        if (existing.has(jobKey(r.title, r.companySlug))) {
+          skipped++;
+          continue;
+        }
         const id = `${r.source}:${r.sourceId}`;
         const set = {
           url: r.url,
@@ -61,8 +84,11 @@ async function main() {
             ...set,
           })
           .onConflictDoUpdate({ target: jobs.id, set });
+        upserted++;
       }
-      console.log(`[${source.name}] upserted ${ok} jobs`);
+      console.log(
+        `[${source.name}] upserted ${upserted}, skipped ${skipped} cross-source dupes`,
+      );
     } catch (err) {
       console.error(`[${source.name}] FAILED:`, err);
       exitCode = 1;
