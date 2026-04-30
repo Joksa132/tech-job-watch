@@ -45,8 +45,6 @@ export async function scrape(): Promise<RawJob[]> {
   return out;
 }
 
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-
 function toRawJob(j: JobertyJob, listRank: number): RawJob {
   const company = (j.companyName ?? "").trim() || "Unknown";
   const cleanCities = (j.cities ?? []).map((c) =>
@@ -66,9 +64,7 @@ function toRawJob(j: JobertyJob, listRank: number): RawJob {
         : "unknown";
 
   const expiresAt = j.expirationDate ? new Date(j.expirationDate) : null;
-  const postedAt = expiresAt
-    ? new Date(expiresAt.getTime() - THIRTY_DAYS_MS)
-    : new Date();
+  const postedAt = new Date();
 
   return {
     source: "joberty",

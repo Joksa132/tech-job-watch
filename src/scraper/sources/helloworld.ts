@@ -67,7 +67,7 @@ export async function scrape(): Promise<RawJob[]> {
         .text()
         .trim();
       const dm = dateText.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-      const postedAt = dm ? new Date(+dm[3], +dm[2] - 1, +dm[1]) : new Date();
+      const expiresAt = dm ? new Date(+dm[3], +dm[2] - 1, +dm[1]) : null;
 
       const tags = $c
         .find(".__ga4_job_tech_tag")
@@ -113,8 +113,8 @@ export async function scrape(): Promise<RawJob[]> {
         salaryMax: salary?.max ?? null,
         salaryCurrency: salary?.currency ?? null,
         listRank,
-        postedAt,
-        expiresAt: null,
+        postedAt: new Date(),
+        expiresAt,
       });
     }
     offset += PAGE_SIZE;
