@@ -1,4 +1,4 @@
-import { ne } from "drizzle-orm";
+import { and, isNull, lt, ne } from "drizzle-orm";
 import { db } from "../lib/db";
 import { jobs } from "../lib/schema";
 import { slugify, type RawJob } from "./lib";
@@ -28,6 +28,33 @@ async function loadExistingJobs(currentSource: string): Promise<Set<string>> {
     .from(jobs)
     .where(ne(jobs.source, currentSource));
   return new Set(rows.map((r) => jobKey(r.title, r.companySlug)));
+}
+
+async function sweep(now: Date) {
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const stale = await db
+    .update(jobs)
+    .set({ expiredAt: now })
+    .where(and(isNull(jobs.expiredAt), lt(jobs.lastSeenAt, oneDayAgo)))
+    .returning({ id: jobs.id });
+  const pastExpiry = await db
+    .update(jobs)
+    .set({ expiredAt: now })
+    .where(and(isNull(jobs.expiredAt), lt(jobs.expiresAt, now)))
+    .returning({ id: jobs.id });
+  console.log(
+    `[sweep] expired ${stale.length} stale + ${pastExpiry.length} past expiry`,
+  );
+}
+
+async function weeklyMaintenance(now: Date) {
+  const sixMonthsAgo = new Date(now);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const deleted = await db
+    .delete(jobs)
+    .where(lt(jobs.expiredAt, sixMonthsAgo))
+    .returning({ id: jobs.id });
+  console.log(`[maintenance] deleted ${deleted.length} expired > 6 months`);
 }
 
 async function main() {
@@ -96,6 +123,22 @@ async function main() {
       );
     } catch (err) {
       console.error(`[${source.name}] FAILED:`, err);
+      exitCode = 1;
+    }
+  }
+
+  try {
+    await sweep(now);
+  } catch (err) {
+    console.error("[sweep] FAILED:", err);
+    exitCode = 1;
+  }
+
+  if (now.getDay() === 0) {
+    try {
+      await weeklyMaintenance(now);
+    } catch (err) {
+      console.error("[maintenance] FAILED:", err);
       exitCode = 1;
     }
   }
