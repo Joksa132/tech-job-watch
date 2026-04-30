@@ -13,8 +13,10 @@ export function JobCard({
   signedIn: boolean;
   isSaved: boolean;
 }) {
+  const dateLabel = job.expiresAt ? `expires ${fmtDate(job.expiresAt)}` : null;
+
   return (
-    <li className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-16 gap-y-3 py-7 border-b border-rule">
+    <li className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-16 gap-y-3 py-7 px-2 -mx-2 border-b border-rule transition-colors duration-150 hover:bg-foreground/2.5">
       <div className="min-w-0">
         <a
           href={job.url}
@@ -40,6 +42,12 @@ export function JobCard({
               </span>
             </>
           )}
+          <span className="mx-2 text-muted">·</span>
+          <span className="text-foreground/70 capitalize">
+            {job.seniority && job.seniority !== "unknown"
+              ? job.seniority
+              : "Unknown"}
+          </span>
         </p>
         {job.tags.length > 0 && (
           <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.15em] text-muted">
@@ -48,20 +56,13 @@ export function JobCard({
         )}
       </div>
       <div className="md:text-right space-y-1.5 shrink-0">
-        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+        <p
+          className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted"
+          title={`scraped ${fmtDate(job.scrapedAt)}`}
+        >
           {job.source}
+          {dateLabel && <> · {dateLabel}</>}
         </p>
-        <p className="font-mono text-xs text-foreground/70">
-          {fmtDate(job.postedAt)}
-        </p>
-        <p className="font-mono text-[10px] text-muted">
-          scraped {fmtDate(job.scrapedAt)}
-        </p>
-        {job.seniority && job.seniority !== "unknown" && (
-          <p className="font-mono text-xs text-foreground/70 capitalize">
-            {job.seniority}
-          </p>
-        )}
         {job.salaryMin != null && job.salaryMax != null && (
           <p className="font-mono text-xs text-foreground/70">
             {fmtSalary(job.salaryMin, job.salaryMax, job.salaryCurrency)}
@@ -75,7 +76,7 @@ export function JobCard({
             rel="noopener noreferrer"
             className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent hover:underline underline-offset-4"
           >
-            Read →
+            Read ↗
           </a>
         </div>
       </div>

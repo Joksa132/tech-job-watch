@@ -45,7 +45,7 @@ export default async function RootLayout({
       className={`${newsreader.variable} ${manrope.variable} ${jetbrains.variable} antialiased`}
     >
       <body className="min-h-screen flex flex-col font-sans bg-background text-foreground">
-        <header className="border-b border-rule">
+        <header className="sticky top-0 z-10 border-b border-rule bg-background/85 backdrop-blur-sm">
           <div className="mx-auto max-w-5xl px-6 pt-12 pb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <Link href="/" className="block group">
               <h1 className="font-serif font-medium text-5xl md:text-6xl leading-[0.95] tracking-tight">
