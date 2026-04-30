@@ -1,12 +1,19 @@
 import { db } from "@/lib/db";
 import { jobs, savedJobs } from "@/lib/schema";
 import { isNull, asc, eq, sql } from "drizzle-orm";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { JobCard } from "@/components/job-card";
+import { VisitTracker } from "@/components/visit-tracker";
 
 export default async function Home() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const [session, cookieStore] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    cookies(),
+  ]);
+
+  const lastVisitRaw = cookieStore.get("lastVisit")?.value;
+  const lastVisit = lastVisitRaw ? new Date(lastVisitRaw) : null;
 
   const rows = await db
     .select()
@@ -48,10 +55,12 @@ export default async function Home() {
               job={j}
               signedIn={!!session}
               isSaved={savedIds.has(j.id)}
+              isNew={lastVisit ? j.firstSeenAt > lastVisit : false}
             />
           ))}
         </ol>
       )}
+      <VisitTracker />
     </section>
   );
 }
