@@ -18,7 +18,7 @@ export function FilterBar({
     <form
       method="GET"
       action="/"
-      className="flex flex-wrap items-end gap-x-6 gap-y-4 py-5 border-b border-rule"
+      className="flex flex-wrap items-end gap-x-6 gap-y-4 py-5"
     >
       <label className="flex flex-col gap-1.5 grow min-w-[200px]">
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
@@ -79,7 +79,7 @@ export function FilterBar({
         </span>
       </label>
 
-      <div className="flex items-center gap-4 pb-1">
+      <div className="flex items-center gap-4 pb-1.5">
         <button
           type="submit"
           className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent hover:underline underline-offset-4 cursor-pointer"

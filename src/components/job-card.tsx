@@ -16,7 +16,11 @@ export function JobCard({
   const dateLabel = job.expiresAt ? `expires ${fmtDate(job.expiresAt)}` : null;
 
   return (
-    <li className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-16 gap-y-3 py-7 px-2 -mx-2 border-b border-rule transition-colors duration-150 hover:bg-foreground/2.5">
+    <li
+      className={`grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-16 gap-y-3 py-7 pl-3 pr-2 -mx-2 border-b border-b-rule border-l-2 transition-colors duration-150 hover:bg-foreground/2.5 ${
+        isSaved ? "border-l-accent" : "border-l-transparent"
+      }`}
+    >
       <div className="min-w-0">
         <a
           href={job.url}
@@ -58,7 +62,7 @@ export function JobCard({
       <div className="md:text-right space-y-1.5 shrink-0">
         <p
           className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted"
-          title={`scraped ${fmtDate(job.scrapedAt)}`}
+          title={`first scraped ${fmtDate(job.firstSeenAt)}`}
         >
           {job.source}
           {dateLabel && <> · {dateLabel}</>}

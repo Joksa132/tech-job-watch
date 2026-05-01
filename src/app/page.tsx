@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { JobCard } from "@/components/job-card";
 import { FilterBar } from "@/components/filter-bar";
 import { Pagination } from "@/components/pagination";
+import { fmtDate } from "@/lib/format";
 
 const PAGE_SIZE = 50;
 
@@ -63,9 +64,32 @@ export default async function Home({
     .select()
     .from(jobs)
     .where(where)
-    .orderBy(sql`${jobs.listRank} asc nulls last`, asc(jobs.id))
+    .orderBy(
+      sql`date_trunc('day', ${jobs.firstSeenAt}) desc`,
+      sql`${jobs.listRank} asc nulls last`,
+      asc(jobs.id),
+    )
     .limit(PAGE_SIZE)
     .offset((safePage - 1) * PAGE_SIZE);
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const ymd = (d: Date) =>
+    `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  const headerFor = (d: Date) => {
+    if (ymd(d) === ymd(today)) return "Today";
+    if (ymd(d) === ymd(yesterday)) return "Yesterday";
+    return fmtDate(d);
+  };
+
+  const groups: Array<{ label: string; rows: typeof rows }> = [];
+  for (const j of rows) {
+    const label = headerFor(j.firstSeenAt);
+    const last = groups[groups.length - 1];
+    if (last?.label === label) last.rows.push(j);
+    else groups.push({ label, rows: [j] });
+  }
 
   const savedIds = session
     ? new Set(
@@ -98,16 +122,23 @@ export default async function Home({
         </div>
       ) : (
         <>
-          <ol>
-            {rows.map((j) => (
-              <JobCard
-                key={j.id}
-                job={j}
-                signedIn={!!session}
-                isSaved={savedIds.has(j.id)}
-              />
-            ))}
-          </ol>
+          {groups.map((g) => (
+            <section key={g.label} className="mt-8 first:mt-6">
+              <h3 className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted pb-2 border-b border-rule">
+                {g.label} <span className="text-muted/60">· {g.rows.length}</span>
+              </h3>
+              <ol>
+                {g.rows.map((j) => (
+                  <JobCard
+                    key={j.id}
+                    job={j}
+                    signedIn={!!session}
+                    isSaved={savedIds.has(j.id)}
+                  />
+                ))}
+              </ol>
+            </section>
+          ))}
           <Pagination
             page={safePage}
             pageCount={pageCount}
