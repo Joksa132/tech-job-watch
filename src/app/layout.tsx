@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { SignInButton, SignOutButton } from "@/components/auth-buttons";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { fmtDate } from "@/lib/format";
 import "./globals.css";
 
@@ -43,8 +45,10 @@ export default async function RootLayout({
     <html
       lang="en"
       className={`${newsreader.variable} ${manrope.variable} ${jetbrains.variable} antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col font-sans bg-background text-foreground">
+        <ThemeProvider>
         <header className="sticky top-0 z-10 border-b border-rule bg-background/85 backdrop-blur-sm">
           <div className="mx-auto max-w-5xl px-6 pt-12 pb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <Link href="/" className="block group">
@@ -58,6 +62,7 @@ export default async function RootLayout({
                 {today}
               </p>
               <div className="font-mono text-[11px] uppercase tracking-[0.15em] flex items-center gap-3">
+                <ThemeToggle />
                 {session ? (
                   <>
                     <Link
@@ -84,6 +89,7 @@ export default async function RootLayout({
             Scraped daily · helloworld.rs · joberty.com · infostud.com
           </div>
         </footer>
+        </ThemeProvider>
       </body>
     </html>
   );
