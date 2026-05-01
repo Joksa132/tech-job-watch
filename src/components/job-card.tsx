@@ -8,12 +8,10 @@ export function JobCard({
   job,
   signedIn,
   isSaved,
-  isNew,
 }: {
   job: Job;
   signedIn: boolean;
   isSaved: boolean;
-  isNew: boolean;
 }) {
   const dateLabel = job.expiresAt ? `expires ${fmtDate(job.expiresAt)}` : null;
 
@@ -26,13 +24,6 @@ export function JobCard({
           rel="noopener noreferrer"
           className="font-serif font-medium text-2xl md:text-3xl leading-tight hover:text-accent transition-colors duration-150 inline-block"
         >
-          {isNew && (
-            <span
-              className="inline-block w-2 h-2 rounded-full bg-accent mr-3 align-middle"
-              title="new since last visit"
-              aria-label="new since last visit"
-            />
-          )}
           {job.title}
         </a>
         <p className="mt-2 text-sm md:text-base">

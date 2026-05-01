@@ -1,10 +1,9 @@
 import { db } from "@/lib/db";
 import { jobs, savedJobs } from "@/lib/schema";
 import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
-import { headers, cookies } from "next/headers";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { JobCard } from "@/components/job-card";
-import { VisitTracker } from "@/components/visit-tracker";
 import { FilterBar } from "@/components/filter-bar";
 import { Pagination } from "@/components/pagination";
 
@@ -30,13 +29,7 @@ export default async function Home({
   const remote = sp.remote === "1";
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
-  const [session, cookieStore] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
-    cookies(),
-  ]);
-
-  const lastVisitRaw = cookieStore.get("lastVisit")?.value;
-  const lastVisit = lastVisitRaw ? new Date(lastVisitRaw) : null;
+  const session = await auth.api.getSession({ headers: await headers() });
 
   const conds = [isNull(jobs.expiredAt)];
   if (source) conds.push(eq(jobs.source, source));
@@ -112,7 +105,6 @@ export default async function Home({
                 job={j}
                 signedIn={!!session}
                 isSaved={savedIds.has(j.id)}
-                isNew={lastVisit ? j.firstSeenAt > lastVisit : false}
               />
             ))}
           </ol>
@@ -123,7 +115,6 @@ export default async function Home({
           />
         </>
       )}
-      <VisitTracker />
     </section>
   );
 }
