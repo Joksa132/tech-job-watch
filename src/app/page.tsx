@@ -1,12 +1,35 @@
 import { db } from "@/lib/db";
 import { jobs, savedJobs } from "@/lib/schema";
-import { isNull, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { headers, cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { JobCard } from "@/components/job-card";
 import { VisitTracker } from "@/components/visit-tracker";
+import { FilterBar } from "@/components/filter-bar";
+import { Pagination } from "@/components/pagination";
 
-export default async function Home() {
+const PAGE_SIZE = 50;
+
+type SearchParams = {
+  q?: string;
+  source?: string;
+  seniority?: string;
+  remote?: string;
+  page?: string;
+};
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const sp = await searchParams;
+  const q = (sp.q ?? "").trim();
+  const source = sp.source ?? "";
+  const seniority = sp.seniority ?? "";
+  const remote = sp.remote === "1";
+  const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
+
   const [session, cookieStore] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     cookies(),
@@ -15,12 +38,41 @@ export default async function Home() {
   const lastVisitRaw = cookieStore.get("lastVisit")?.value;
   const lastVisit = lastVisitRaw ? new Date(lastVisitRaw) : null;
 
+  const conds = [isNull(jobs.expiredAt)];
+  if (source) conds.push(eq(jobs.source, source));
+  if (seniority === "unknown") {
+    conds.push(or(isNull(jobs.seniority), eq(jobs.seniority, "unknown"))!);
+  } else if (seniority) {
+    conds.push(eq(jobs.seniority, seniority));
+  }
+  if (remote) conds.push(eq(jobs.remote, true));
+  if (q) {
+    const pattern = `%${q}%`;
+    conds.push(
+      or(
+        ilike(jobs.title, pattern),
+        ilike(jobs.company, pattern),
+        sql`${jobs.tags}::text ILIKE ${pattern}`,
+      )!,
+    );
+  }
+  const where = and(...conds);
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(jobs)
+    .where(where);
+
+  const pageCount = Math.max(1, Math.ceil(count / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+
   const rows = await db
     .select()
     .from(jobs)
-    .where(isNull(jobs.expiredAt))
+    .where(where)
     .orderBy(sql`${jobs.listRank} asc nulls last`, asc(jobs.id))
-    .limit(200);
+    .limit(PAGE_SIZE)
+    .offset((safePage - 1) * PAGE_SIZE);
 
   const savedIds = session
     ? new Set(
@@ -33,32 +85,43 @@ export default async function Home() {
       )
     : new Set<string>();
 
+  const isFiltered = !!(q || source || seniority || remote);
+
   return (
     <section className="mx-auto max-w-5xl px-6 pt-12">
       <div className="border-b border-rule pb-3">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">
-          {rows.length} active
+          {count} {isFiltered ? "matching" : "active"}
         </h2>
       </div>
+
+      <FilterBar q={q} source={source} seniority={seniority} remote={remote} />
 
       {rows.length === 0 ? (
         <div className="py-32 text-center">
           <p className="font-serif italic text-3xl text-muted">
-            No listings today.
+            {isFiltered ? "No matches." : "No listings today."}
           </p>
         </div>
       ) : (
-        <ol>
-          {rows.map((j) => (
-            <JobCard
-              key={j.id}
-              job={j}
-              signedIn={!!session}
-              isSaved={savedIds.has(j.id)}
-              isNew={lastVisit ? j.firstSeenAt > lastVisit : false}
-            />
-          ))}
-        </ol>
+        <>
+          <ol>
+            {rows.map((j) => (
+              <JobCard
+                key={j.id}
+                job={j}
+                signedIn={!!session}
+                isSaved={savedIds.has(j.id)}
+                isNew={lastVisit ? j.firstSeenAt > lastVisit : false}
+              />
+            ))}
+          </ol>
+          <Pagination
+            page={safePage}
+            pageCount={pageCount}
+            searchParams={{ q, source, seniority, remote: remote ? "1" : undefined }}
+          />
+        </>
       )}
       <VisitTracker />
     </section>
