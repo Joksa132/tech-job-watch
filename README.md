@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TechJobWatch
 
-## Getting Started
+## Description
 
-First, run the development server:
+A lookout over the Serbian IT job market. TechJobWatch scrapes every JavaScript-related posting from [helloworld.rs](https://helloworld.rs), [joberty.com](https://joberty.com), and [infostud.com](https://www.infostud.com) every morning, and puts them in a single filterable dashboard.
+Personal job-hunt tool first, public site second.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Daily Scraping:** Three Serbian job boards scraped every morning via GitHub Actions, with polite rate-limiting and identifiable user-agent.
+- **Cross-Source Deduplication:** The same posting on multiple boards is shown once, keyed by slugified title and company.
+- **Date Grouping:** Jobs are grouped by the date they were first discovered.
+- **URL-Driven Filters:** Filter by source, seniority, remote, or free-text search across title, company, and tags.
+- **Pagination:** Server-rendered pagination preserves all active filters.
+- **Saved & Applied Tracking:** Save jobs and mark them as applied, with personal notes per job, all backed by GitHub authentication.
+- **Soft-Expire Sweep:** Postings that disappear from their source board get marked expired automatically; rows older than 6 months are cleaned up weekly.
+- **Light & Dark Theme:** System default with manual override.
+- **GitHub Authentication:** Secure login powered by Better Auth.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Technologies used
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **[Next.js 16](https://nextjs.org/)**
+- **[TypeScript](https://www.typescriptlang.org/)**
+- **[Tailwind CSS 4](https://tailwindcss.com/)**
+- **[Drizzle ORM](https://orm.drizzle.team/)**
+- **[Neon Postgres](https://neon.tech/)**
+- **[Better Auth](https://www.better-auth.com/)**
+- **[Cheerio](https://cheerio.js.org/)**
+- **[GitHub Actions](https://github.com/features/actions)**
+- **[next-themes](https://github.com/pacocoursey/next-themes)**
+- **[Vercel](https://vercel.com/)**
