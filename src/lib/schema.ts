@@ -36,7 +36,6 @@ export const jobs = pgTable('jobs', {
   scrapedAt: timestamp('scraped_at', { withTimezone: true }).notNull(),
 }, (t) => [
   index('source_idx').on(t.source),
-  index('posted_at_idx').on(t.postedAt),
   index('company_slug_idx').on(t.companySlug),
   index('expired_at_idx').on(t.expiredAt),
 ]);

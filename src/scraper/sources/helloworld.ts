@@ -1,11 +1,8 @@
 import { load } from "cheerio";
-import { fetchHtml, slugify, type RawJob } from "../lib";
+import { fetchHtml, slugify, SCRAPE_LIMIT, type RawJob } from "../lib";
 
 const BASE = "https://www.helloworld.rs";
 const QUERY = "?q=javascript&scope=full&sort=p_vreme_postavljanja_sort";
-const SCRAPE_LIMIT = process.env.SCRAPE_LIMIT
-  ? parseInt(process.env.SCRAPE_LIMIT, 10)
-  : Infinity;
 
 export async function scrape(): Promise<RawJob[]> {
   const out: RawJob[] = [];

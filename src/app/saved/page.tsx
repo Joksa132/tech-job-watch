@@ -1,13 +1,12 @@
 import { db } from "@/lib/db";
 import { jobs, savedJobs } from "@/lib/schema";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq, desc } from "drizzle-orm";
 import { SavedRow } from "@/components/saved-row";
 
 export default async function SavedPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session) redirect("/");
 
   const rows = await db

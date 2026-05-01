@@ -1,11 +1,8 @@
 import { load } from "cheerio";
-import { fetchHtml, slugify, type RawJob } from "../lib";
+import { fetchHtml, slugify, SCRAPE_LIMIT, type RawJob } from "../lib";
 
 const BASE = "https://poslovi.infostud.com";
 const QUERY = "?scope=full&sort=online_view_date";
-const SCRAPE_LIMIT = process.env.SCRAPE_LIMIT
-  ? parseInt(process.env.SCRAPE_LIMIT, 10)
-  : Infinity;
 
 type InfostudJob = {
   id: number;

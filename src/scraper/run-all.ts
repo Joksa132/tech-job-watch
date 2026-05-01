@@ -1,4 +1,4 @@
-import { and, isNull, lt, ne } from "drizzle-orm";
+import { and, isNull, lt, ne, or } from "drizzle-orm";
 import { db } from "../lib/db";
 import { jobs } from "../lib/schema";
 import { slugify, type RawJob } from "./lib";
@@ -32,19 +32,17 @@ async function loadExistingJobs(currentSource: string): Promise<Set<string>> {
 
 async function sweep(now: Date) {
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const stale = await db
+  const expired = await db
     .update(jobs)
     .set({ expiredAt: now })
-    .where(and(isNull(jobs.expiredAt), lt(jobs.lastSeenAt, oneDayAgo)))
+    .where(
+      and(
+        isNull(jobs.expiredAt),
+        or(lt(jobs.lastSeenAt, oneDayAgo), lt(jobs.expiresAt, now)),
+      ),
+    )
     .returning({ id: jobs.id });
-  const pastExpiry = await db
-    .update(jobs)
-    .set({ expiredAt: now })
-    .where(and(isNull(jobs.expiredAt), lt(jobs.expiresAt, now)))
-    .returning({ id: jobs.id });
-  console.log(
-    `[sweep] expired ${stale.length} stale + ${pastExpiry.length} past expiry`,
-  );
+  console.log(`[sweep] expired ${expired.length}`);
 }
 
 async function weeklyMaintenance(now: Date) {

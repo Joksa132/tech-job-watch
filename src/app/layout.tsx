@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Newsreader, Manrope, JetBrains_Mono } from "next/font/google";
-import { headers } from "next/headers";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { SignInButton, SignOutButton } from "@/components/auth-buttons";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -38,7 +37,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   const today = fmtDate(new Date());
 
   return (

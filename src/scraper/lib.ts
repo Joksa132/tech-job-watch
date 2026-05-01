@@ -20,6 +20,10 @@ export type RawJob = {
 export const USER_AGENT =
   "tech-job-watch/1.0 (+https://github.com/Joksa132/tech-job-watch; nikolajoksimovic419@gmail.com)";
 
+export const SCRAPE_LIMIT = process.env.SCRAPE_LIMIT
+  ? parseInt(process.env.SCRAPE_LIMIT, 10)
+  : Infinity;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let lastFetch = 0;
 

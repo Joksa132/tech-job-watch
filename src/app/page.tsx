@@ -1,8 +1,7 @@
 import { db } from "@/lib/db";
 import { jobs, savedJobs } from "@/lib/schema";
-import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { and, asc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { getSession } from "@/lib/auth";
 import { JobCard } from "@/components/job-card";
 import { FilterBar } from "@/components/filter-bar";
 import { Pagination } from "@/components/pagination";
@@ -30,8 +29,6 @@ export default async function Home({
   const remote = sp.remote === "1";
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
-  const session = await auth.api.getSession({ headers: await headers() });
-
   const conds = [isNull(jobs.expiredAt)];
   if (source) conds.push(eq(jobs.source, source));
   if (seniority === "unknown") {
@@ -52,10 +49,10 @@ export default async function Home({
   }
   const where = and(...conds);
 
-  const [{ count }] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(jobs)
-    .where(where);
+  const [[{ count }], session] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(jobs).where(where),
+    getSession(),
+  ]);
 
   const pageCount = Math.max(1, Math.ceil(count / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -72,14 +69,12 @@ export default async function Home({
     .limit(PAGE_SIZE)
     .offset((safePage - 1) * PAGE_SIZE);
 
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  const ymd = (d: Date) =>
-    `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86_400_000).toDateString();
   const headerFor = (d: Date) => {
-    if (ymd(d) === ymd(today)) return "Today";
-    if (ymd(d) === ymd(yesterday)) return "Yesterday";
+    const s = d.toDateString();
+    if (s === today) return "Today";
+    if (s === yesterday) return "Yesterday";
     return fmtDate(d);
   };
 
@@ -91,13 +86,18 @@ export default async function Home({
     else groups.push({ label, rows: [j] });
   }
 
-  const savedIds = session
+  const savedIds = session && rows.length > 0
     ? new Set(
         (
           await db
             .select({ jobId: savedJobs.jobId })
             .from(savedJobs)
-            .where(eq(savedJobs.userId, session.user.id))
+            .where(
+              and(
+                eq(savedJobs.userId, session.user.id),
+                inArray(savedJobs.jobId, rows.map((r) => r.id)),
+              ),
+            )
         ).map((r) => r.jobId),
       )
     : new Set<string>();

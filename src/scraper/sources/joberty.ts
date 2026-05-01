@@ -1,11 +1,8 @@
-import { fetchHtml, slugify, type RawJob } from "../lib";
+import { fetchHtml, slugify, SCRAPE_LIMIT, type RawJob } from "../lib";
 
 const API = "https://backend.joberty.com/api/v1/jobs";
 const SITE = "https://www.joberty.com";
 const QUERY = "?search=javascript&sort=created";
-const SCRAPE_LIMIT = process.env.SCRAPE_LIMIT
-  ? parseInt(process.env.SCRAPE_LIMIT, 10)
-  : Infinity;
 
 type JobertyJob = {
   id: number;

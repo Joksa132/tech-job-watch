@@ -1,5 +1,5 @@
 import { jobs } from "@/lib/schema";
-import { fmtDate, fmtSalary } from "@/lib/format";
+import { fmtDate } from "@/lib/format";
 import { SaveButton } from "./save-button";
 
 type Job = typeof jobs.$inferSelect;
@@ -69,7 +69,7 @@ export function JobCard({
         </p>
         {job.salaryMin != null && job.salaryMax != null && (
           <p className="font-mono text-xs text-foreground/70">
-            {fmtSalary(job.salaryMin, job.salaryMax, job.salaryCurrency)}
+            {Math.round(job.salaryMin / 1000)}k–{Math.round(job.salaryMax / 1000)}k {job.salaryCurrency ?? ""}
           </p>
         )}
         <div className="mt-2 flex md:justify-end items-center gap-4">
