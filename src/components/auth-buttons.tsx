@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 export function SignInButton() {
@@ -15,10 +16,14 @@ export function SignInButton() {
 }
 
 export function SignOutButton() {
+  const router = useRouter();
   return (
     <button
       type="button"
-      onClick={() => authClient.signOut()}
+      onClick={async () => {
+        await authClient.signOut();
+        router.refresh();
+      }}
       className="hover:text-accent transition-colors duration-150 cursor-pointer"
     >
       Sign out
