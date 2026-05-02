@@ -4,10 +4,12 @@ export function Pagination({
   page,
   pageCount,
   searchParams,
+  basePath = "/",
 }: {
   page: number;
   pageCount: number;
   searchParams: Record<string, string | undefined>;
+  basePath?: string;
 }) {
   if (pageCount <= 1) return null;
 
@@ -15,7 +17,7 @@ export function Pagination({
     const usp = new URLSearchParams();
     for (const [k, v] of Object.entries(searchParams)) if (v) usp.set(k, v);
     if (p > 1) usp.set("page", String(p));
-    return usp.toString() ? `/?${usp}` : "/";
+    return usp.toString() ? `${basePath}?${usp}` : basePath;
   };
 
   const link =
@@ -25,7 +27,9 @@ export function Pagination({
   return (
     <nav className="flex items-center justify-between py-8 border-t border-rule mt-2">
       {page > 1 ? (
-        <Link href={href(page - 1)} className={link}>← Previous</Link>
+        <Link href={href(page - 1)} className={link}>
+          ← Previous
+        </Link>
       ) : (
         <span className={dim}>← Previous</span>
       )}
@@ -33,7 +37,9 @@ export function Pagination({
         Page {page} of {pageCount}
       </span>
       {page < pageCount ? (
-        <Link href={href(page + 1)} className={link}>Next →</Link>
+        <Link href={href(page + 1)} className={link}>
+          Next →
+        </Link>
       ) : (
         <span className={dim}>Next →</span>
       )}

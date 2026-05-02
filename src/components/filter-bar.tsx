@@ -8,16 +8,18 @@ export function FilterBar({
   source,
   seniority,
   remote,
+  basePath = "/",
 }: {
   q: string;
   source: string;
   seniority: string;
   remote: boolean;
+  basePath?: string;
 }) {
   return (
     <form
       method="GET"
-      action="/"
+      action={basePath}
       className="flex flex-wrap items-end gap-x-6 gap-y-4 py-5"
     >
       <label className="flex flex-col gap-1.5 grow min-w-[200px]">
@@ -87,7 +89,7 @@ export function FilterBar({
           Apply
         </button>
         <Link
-          href="/"
+          href={basePath}
           className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted hover:text-foreground transition-colors duration-150"
         >
           Clear

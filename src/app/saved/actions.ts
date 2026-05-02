@@ -16,10 +16,14 @@ export async function saveJob(jobId: string) {
   const userId = await requireUserId();
   await db
     .insert(savedJobs)
-    .values({ userId, jobId })
-    .onConflictDoNothing();
+    .values({ userId, jobId, status: "saved" })
+    .onConflictDoUpdate({
+      target: [savedJobs.userId, savedJobs.jobId],
+      set: { status: "saved", updatedAt: new Date() },
+    });
   revalidatePath("/");
   revalidatePath("/saved");
+  revalidatePath("/hidden");
 }
 
 export async function unsaveJob(jobId: string) {
@@ -29,6 +33,7 @@ export async function unsaveJob(jobId: string) {
     .where(and(eq(savedJobs.userId, userId), eq(savedJobs.jobId, jobId)));
   revalidatePath("/");
   revalidatePath("/saved");
+  revalidatePath("/hidden");
 }
 
 export async function setStatus(jobId: string, status: "saved" | "applied") {

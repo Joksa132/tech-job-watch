@@ -1,6 +1,7 @@
 import { jobs } from "@/lib/schema";
 import { fmtDate } from "@/lib/format";
 import { SaveButton } from "./save-button";
+import { HideButton } from "./hide-button";
 
 type Job = typeof jobs.$inferSelect;
 
@@ -8,10 +9,12 @@ export function JobCard({
   job,
   signedIn,
   isSaved,
+  isHidden,
 }: {
   job: Job;
   signedIn: boolean;
   isSaved: boolean;
+  isHidden: boolean;
 }) {
   const dateLabel = job.expiresAt ? `expires ${fmtDate(job.expiresAt)}` : null;
 
@@ -69,11 +72,15 @@ export function JobCard({
         </p>
         {job.salaryMin != null && job.salaryMax != null && (
           <p className="font-mono text-xs text-foreground/70">
-            {Math.round(job.salaryMin / 1000)}k–{Math.round(job.salaryMax / 1000)}k {job.salaryCurrency ?? ""}
+            {Math.round(job.salaryMin / 1000)}k–
+            {Math.round(job.salaryMax / 1000)}k {job.salaryCurrency ?? ""}
           </p>
         )}
         <div className="mt-2 flex md:justify-end items-center gap-4">
-          {signedIn && <SaveButton jobId={job.id} isSaved={isSaved} />}
+          {signedIn && !isHidden && (
+            <SaveButton jobId={job.id} isSaved={isSaved} />
+          )}
+          {signedIn && <HideButton jobId={job.id} isHidden={isHidden} />}
           <a
             href={job.url}
             target="_blank"
