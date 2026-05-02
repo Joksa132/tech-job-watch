@@ -9,6 +9,7 @@ import { SignInButton, SignOutButton } from "@/components/auth-buttons";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { fmtDate } from "@/lib/format";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -110,6 +111,7 @@ export default async function RootLayout({
           </div>
         </footer>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
