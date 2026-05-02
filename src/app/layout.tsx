@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Newsreader, Manrope, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
+import { sql } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { jobs } from "@/lib/schema";
 import { SignInButton, SignOutButton } from "@/components/auth-buttons";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -37,7 +40,10 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await getSession();
+  const [session, [{ at: lastScrapedAt }]] = await Promise.all([
+    getSession(),
+    db.select({ at: sql<Date | null>`max(${jobs.scrapedAt})` }).from(jobs),
+  ]);
   const today = fmtDate(new Date());
 
   return (
@@ -84,8 +90,23 @@ export default async function RootLayout({
         </header>
         <main className="flex-1">{children}</main>
         <footer className="border-t border-rule mt-24">
-          <div className="mx-auto max-w-5xl px-6 py-6 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-            Scraped daily · helloworld.rs · joberty.com · infostud.com
+          <div className="mx-auto max-w-5xl px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+            <div>
+              helloworld.rs · joberty.com · infostud.com
+            </div>
+            <div className="flex items-center gap-4">
+              {lastScrapedAt && (
+                <span>Updated {fmtDate(new Date(lastScrapedAt))}</span>
+              )}
+              <a
+                href="https://github.com/Joksa132/tech-job-watch"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-accent transition-colors duration-150"
+              >
+                GitHub ↗
+              </a>
+            </div>
           </div>
         </footer>
         </ThemeProvider>

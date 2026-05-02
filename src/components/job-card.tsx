@@ -67,7 +67,7 @@ export function JobCard({
           className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted"
           title={`first scraped ${fmtDate(job.firstSeenAt)}`}
         >
-          {job.source}
+          [{job.source}]
           {dateLabel && <> · {dateLabel}</>}
         </p>
         {job.salaryMin != null && job.salaryMax != null && (

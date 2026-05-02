@@ -30,7 +30,11 @@ export function SavedRow({
   const [pending, startTransition] = useTransition();
 
   return (
-    <li className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-12 gap-y-3 py-7 border-b border-rule">
+    <li
+      className={`grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-12 gap-y-3 py-7 pl-3 pr-2 -mx-2 border-b border-rule border-l-2 transition-colors duration-150 hover:bg-foreground/2.5 ${
+        status === "applied" ? "border-l-accent" : "border-l-transparent"
+      }`}
+    >
       <div className="min-w-0 space-y-3">
         <a
           href={url}
@@ -60,7 +64,7 @@ export function SavedRow({
       </div>
       <div className="md:text-right space-y-2 shrink-0">
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-          {source} · {fmtDate(postedAt)}
+          [{source}] · {fmtDate(postedAt)}
         </p>
         <select
           value={status}
