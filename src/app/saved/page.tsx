@@ -2,24 +2,59 @@ import { db } from "@/lib/db";
 import { jobs, savedJobs } from "@/lib/schema";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, ne, or, sql } from "drizzle-orm";
 import { SavedRow } from "@/components/saved-row";
+import { FilterBar } from "@/components/filter-bar";
 import { fmtDate } from "@/lib/format";
 
-export default async function SavedPage() {
+type SearchParams = {
+  q?: string;
+  source?: string;
+  seniority?: string;
+  remote?: string;
+};
+
+export default async function SavedPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const session = await getSession();
   if (!session) redirect("/");
+
+  const sp = await searchParams;
+  const q = (sp.q ?? "").trim();
+  const source = sp.source ?? "";
+  const seniority = sp.seniority ?? "";
+  const remote = sp.remote === "1";
+
+  const conds = [
+    eq(savedJobs.userId, session.user.id),
+    ne(savedJobs.status, "hidden"),
+  ];
+  if (source) conds.push(eq(jobs.source, source));
+  if (seniority === "unknown") {
+    conds.push(or(eq(jobs.seniority, "unknown"), sql`${jobs.seniority} is null`)!);
+  } else if (seniority) {
+    conds.push(eq(jobs.seniority, seniority));
+  }
+  if (remote) conds.push(eq(jobs.remote, true));
+  if (q) {
+    const pattern = `%${q}%`;
+    conds.push(
+      or(
+        ilike(jobs.title, pattern),
+        ilike(jobs.company, pattern),
+        sql`${jobs.tags}::text ILIKE ${pattern}`,
+      )!,
+    );
+  }
 
   const rows = await db
     .select({ job: jobs, saved: savedJobs })
     .from(savedJobs)
     .innerJoin(jobs, eq(savedJobs.jobId, jobs.id))
-    .where(
-      and(
-        eq(savedJobs.userId, session.user.id),
-        ne(savedJobs.status, "hidden"),
-      ),
-    )
+    .where(and(...conds))
     .orderBy(desc(savedJobs.createdAt));
 
   const now = new Date();
@@ -41,12 +76,13 @@ export default async function SavedPage() {
   }
 
   const appliedCount = rows.filter((r) => r.saved.status === "applied").length;
+  const isFiltered = !!(q || source || seniority || remote);
 
   return (
     <section className="mx-auto max-w-5xl px-6 pt-12">
       <div className="border-b border-rule pb-3 flex items-baseline justify-between gap-4">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">
-          {rows.length} saved
+          {rows.length} {isFiltered ? "matching" : "saved"}
         </h2>
         {appliedCount > 0 && (
           <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">
@@ -55,10 +91,18 @@ export default async function SavedPage() {
         )}
       </div>
 
+      <FilterBar
+        q={q}
+        source={source}
+        seniority={seniority}
+        remote={remote}
+        basePath="/saved"
+      />
+
       {rows.length === 0 ? (
         <div className="py-32 text-center">
           <p className="font-serif italic text-3xl text-muted">
-            Nothing saved yet.
+            {isFiltered ? "No matches." : "Nothing saved yet."}
           </p>
         </div>
       ) : (
@@ -76,6 +120,12 @@ export default async function SavedPage() {
                   title={r.job.title}
                   company={r.job.company}
                   location={r.job.location}
+                  remote={r.job.remote ?? false}
+                  seniority={r.job.seniority}
+                  tags={r.job.tags}
+                  salaryMin={r.job.salaryMin}
+                  salaryMax={r.job.salaryMax}
+                  salaryCurrency={r.job.salaryCurrency}
                   url={r.job.url}
                   source={r.job.source}
                   postedAt={r.job.postedAt}

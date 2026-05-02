@@ -9,6 +9,12 @@ export function SavedRow({
   title,
   company,
   location,
+  remote,
+  seniority,
+  tags,
+  salaryMin,
+  salaryMax,
+  salaryCurrency,
   url,
   source,
   postedAt,
@@ -19,6 +25,12 @@ export function SavedRow({
   title: string;
   company: string;
   location: string | null;
+  remote: boolean;
+  seniority: string | null;
+  tags: string[];
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string | null;
   url: string;
   source: string;
   postedAt: Date;
@@ -35,7 +47,7 @@ export function SavedRow({
         status === "applied" ? "border-l-accent" : "border-l-transparent"
       }`}
     >
-      <div className="min-w-0 space-y-3">
+      <div className="min-w-0 space-y-2">
         <a
           href={url}
           target="_blank"
@@ -52,7 +64,22 @@ export function SavedRow({
               <span className="text-foreground/70">{location}</span>
             </>
           )}
+          {remote && (
+            <>
+              <span className="mx-2 text-muted">·</span>
+              <span className="text-accent text-sm font-mono uppercase tracking-wider">Remote</span>
+            </>
+          )}
+          <span className="mx-2 text-muted">·</span>
+          <span className="text-foreground/70 capitalize">
+            {seniority && seniority !== "unknown" ? seniority : "Unknown"}
+          </span>
         </p>
+        {tags.length > 0 && (
+          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted">
+            {tags.slice(0, 8).join("  ·  ")}
+          </p>
+        )}
         <textarea
           value={notes}
           placeholder="Notes…"
@@ -66,6 +93,11 @@ export function SavedRow({
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
           [{source}] · {fmtDate(postedAt)}
         </p>
+        {salaryMin != null && salaryMax != null && (
+          <p className="font-mono text-xs text-foreground/70">
+            {Math.round(salaryMin / 1000)}k–{Math.round(salaryMax / 1000)}k {salaryCurrency ?? ""}
+          </p>
+        )}
         <select
           value={status}
           disabled={pending}
