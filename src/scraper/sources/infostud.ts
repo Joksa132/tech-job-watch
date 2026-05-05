@@ -49,6 +49,7 @@ export async function scrape(): Promise<RawJob[]> {
 
     for (const j of r.jobs.primary) {
       if (out.length >= SCRAPE_LIMIT) break;
+      if (!isRelevant(j)) continue;
       out.push(toRawJob(j, out.length));
     }
     page++;
@@ -88,6 +89,11 @@ function toRawJob(j: InfostudJob, listRank: number): RawJob {
     postedAt: parseDate(j.onlineViewDate) ?? new Date(),
     expiresAt: parseDate(j.expirationDate),
   };
+}
+
+function isRelevant(j: InfostudJob): boolean {
+  if (j.itTags && j.itTags.length > 0) return true;
+  return /javascript|typescript|node|frontend|backend|fullstack|full.stack|web|developer/i.test(j.title);
 }
 
 function parseDate(s: string | undefined): Date | null {
